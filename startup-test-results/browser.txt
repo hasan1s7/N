@@ -1,0 +1,15 @@
+PASS Real denied storage produces an actionable error, not an endless loader
+PASS Repair control exists on storage failure
+PASS Actual standalone scripts execute under the exact CSP hashes
+PASS No uncaught parse or top-level error in the standalone bundle
+PASS Standalone HTML boots with no external JS or CSS dependencies
+PASS Independent guard records readiness
+PASS Startup helper disappears after successful render
+PASS No remote script elements
+PASS Mobile layout has no horizontal overflow
+PASS Existing stored card is retained and counted for review
+PASS Blocked BroadcastChannel does not prevent startup
+PASS Nonresponding database becomes a clear error within the open timeout
+PASS Guard reports a top-level application syntax failure
+PASS Guard handles an absent or blocked application bundle
+TOTAL 14
