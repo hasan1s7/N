@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-r1IEZNIE5qzjiYTVpVd41A6PgytDRQtsxTfDdFahg80='; script-src-attr 'none'; style-src 'self' 'sha256-g1l6R3iC7czBVCMsCLpenxoK8ZasuXFdjtQ819VDMok='; img-src 'self' data:; connect-src 'self' https://api.mymemory.translated.net; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; worker-src 'self'; manifest-src 'self'"><title>Repair Nabu loading</title><style>body{margin:0;background:#f6f8f3;color:#20322b;font:16px/1.65 system-ui,sans-serif}main{max-width:640px;margin:10vh auto;padding:32px}h1{font-size:34px;line-height:1.2;letter-spacing:-1px}a{color:#24624f;font-weight:650}p{overflow-wrap:anywhere}.eyebrow{font-size:12px;letter-spacing:3px;color:#24624f}.notice{border:1px solid #c8d8cc;border-radius:12px;padding:18px;background:white}</style></head><body><main><p class="eyebrow">NABU / SAFE STARTUP REPAIR</p><h1>Refresh the app.<br>Keep your words.</h1><p id="repair-status" role="status" aria-live="polite">Refreshing this Nabu site's app files...</p><p class="notice">This repair removes outdated app-file caches and the offline worker for this Nabu path. It does not reset your word database, review history, settings, or account.</p><p><a href="./nabu-repair.html">Retry repair</a> &nbsp; <a href="./">Open Nabu</a></p><noscript><p>Enable JavaScript to run the repair. Do not use Clear site data; that can erase your library.</p></noscript></main><script>/* Repair app files only. This file never opens, resets, or deletes a library. */
+(function () {
+  'use strict';
+  var status = document.getElementById('repair-status');
+  var base = new URL('./', location.href);
+  var stalled = false;
+  var timer = setTimeout(function () {
+    stalled = true;
+    status.textContent = 'The browser has not finished refreshing the app. Close other Nabu tabs, then retry this page. Your library has not been reset.';
+  }, 10000);
+  function registrations() {
+    if (!('serviceWorker' in navigator)) return Promise.resolve();
+    return navigator.serviceWorker.getRegistrations().then(function (items) {
+      return Promise.all(items.filter(function (item) { return item.scope === base.href; }).map(function (item) { return item.unregister(); }));
+    });
+  }
+  function cachedShell() {
+    if (!('caches' in window)) return Promise.resolve();
+    return caches.keys().then(function (names) {
+      return Promise.all(names.filter(function (name) { return name.indexOf('nabu-translate-shell-') === 0; }).map(function (name) {
+        return caches.open(name).then(function (cache) {
+          return cache.keys().then(function (requests) {
+            return Promise.all(requests.filter(function (request) {
+              var url = new URL(request.url);
+              return url.origin === base.origin && url.pathname.indexOf(base.pathname) === 0;
+            }).map(function (request) { return cache.delete(request); }));
+          });
+        });
+      }));
+    });
+  }
+  Promise.resolve().then(registrations).then(cachedShell).then(function () {
+    clearTimeout(timer);
+    if (stalled) return;
+    status.textContent = 'App files refreshed. Opening Nabu. Your saved words and review history are unchanged.';
+    var target = new URL('./', location.href);
+    target.searchParams.set('nabu-repaired', String(Date.now()));
+    location.replace(target.href);
+  }).catch(function (error) {
+    clearTimeout(timer);
+    status.textContent = 'The browser blocked app repair: ' + (error.message || String(error)) + '. Allow site storage, close other Nabu tabs, then retry. Your library has not been reset.';
+  });
+})();
+</script></body></html>
