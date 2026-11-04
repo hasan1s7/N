@@ -1,0 +1,286 @@
+TAP version 13
+# Subtest: new cards have independent identities and due schedules
+ok 1 - new cards have independent identities and due schedules
+  ---
+  duration_ms: 11.822738
+  type: 'test'
+  ...
+# Subtest: all six UN languages are selectable
+ok 2 - all six UN languages are selectable
+  ---
+  duration_ms: 0.401768
+  type: 'test'
+  ...
+# Subtest: card validation rejects same-language cards
+ok 3 - card validation rejects same-language cards
+  ---
+  duration_ms: 0.517532
+  type: 'test'
+  ...
+# Subtest: card validation rejects unsupported languages and empty sides
+ok 4 - card validation rejects unsupported languages and empty sides
+  ---
+  duration_ms: 0.256588
+  type: 'test'
+  ...
+# Subtest: card validation enforces sizes and control-character rules
+ok 5 - card validation enforces sizes and control-character rules
+  ---
+  duration_ms: 0.376048
+  type: 'test'
+  ...
+# Subtest: tags are deduplicated and private text is retained locally
+ok 6 - tags are deduplicated and private text is retained locally
+  ---
+  duration_ms: 0.930957
+  type: 'test'
+  ...
+# Subtest: identity handles canonical Unicode, case, and whitespace
+ok 7 - identity handles canonical Unicode, case, and whitespace
+  ---
+  duration_ms: 0.343709
+  type: 'test'
+  ...
+# Subtest: different meanings are not incorrectly deduplicated
+ok 8 - different meanings are not incorrectly deduplicated
+  ---
+  duration_ms: 0.15206
+  type: 'test'
+  ...
+# Subtest: deck names do not allow duplicated learning items
+ok 9 - deck names do not allow duplicated learning items
+  ---
+  duration_ms: 0.543882
+  type: 'test'
+  ...
+# Subtest: reverse cards start fresh with a separate review schedule
+ok 10 - reverse cards start fresh with a separate review schedule
+  ---
+  duration_ms: 1.220155
+  type: 'test'
+  ...
+# Subtest: new card four buttons have explicit learning intervals
+ok 11 - new card four buttons have explicit learning intervals
+  ---
+  duration_ms: 0.326364
+  type: 'test'
+  ...
+# Subtest: Good twice graduates a new card to a one-day review
+ok 12 - Good twice graduates a new card to a one-day review
+  ---
+  duration_ms: 0.101814
+  type: 'test'
+  ...
+# Subtest: Again in learning resets the learning step but not review lapse count
+ok 13 - Again in learning resets the learning step but not review lapse count
+  ---
+  duration_ms: 0.085669
+  type: 'test'
+  ...
+# Subtest: review ratings increase monotonically
+ok 14 - review ratings increase monotonically
+  ---
+  duration_ms: 0.428358
+  type: 'test'
+  ...
+# Subtest: a review lapse enters relearning and preserves historical reps
+ok 15 - a review lapse enters relearning and preserves historical reps
+  ---
+  duration_ms: 0.119811
+  type: 'test'
+  ...
+# Subtest: relearning Good graduates conservatively
+ok 16 - relearning Good graduates conservatively
+  ---
+  duration_ms: 0.081694
+  type: 'test'
+  ...
+# Subtest: scheduler never mutates its input
+ok 17 - scheduler never mutates its input
+  ---
+  duration_ms: 0.230268
+  type: 'test'
+  ...
+# Subtest: invalid grades are rejected
+ok 18 - invalid grades are rejected
+  ---
+  duration_ms: 0.257209
+  type: 'test'
+  ...
+# Subtest: long review sequences keep intervals and ease bounded
+ok 19 - long review sequences keep intervals and ease bounded
+  ---
+  duration_ms: 3.285717
+  type: 'test'
+  ...
+# Subtest: due queue excludes archived and future cards
+ok 20 - due queue excludes archived and future cards
+  ---
+  duration_ms: 0.33738
+  type: 'test'
+  ...
+# Subtest: relearning takes priority over review and new items
+ok 21 - relearning takes priority over review and new items
+  ---
+  duration_ms: 0.167974
+  type: 'test'
+  ...
+# Subtest: daily new-word cap counts distinct introduced cards
+ok 22 - daily new-word cap counts distinct introduced cards
+  ---
+  duration_ms: 14.439959
+  type: 'test'
+  ...
+# Subtest: new-word limit never suppresses overdue reviews
+ok 23 - new-word limit never suppresses overdue reviews
+  ---
+  duration_ms: 0.249277
+  type: 'test'
+  ...
+# Subtest: statistics do not invent mastery or activity
+ok 24 - statistics do not invent mastery or activity
+  ---
+  duration_ms: 1.209068
+  type: 'test'
+  ...
+# Subtest: streaks can continue from yesterday without claiming today was studied
+ok 25 - streaks can continue from yesterday without claiming today was studied
+  ---
+  duration_ms: 0.342528
+  type: 'test'
+  ...
+# Subtest: activity day uses the local date rather than the UTC date
+ok 26 - activity day uses the local date rather than the UTC date
+  ---
+  duration_ms: 1.075806
+  type: 'test'
+  ...
+# Subtest: chunking preserves UTF-8 text without exceeding provider byte limit
+ok 27 - chunking preserves UTF-8 text without exceeding provider byte limit
+  ---
+  duration_ms: 5.580246
+  type: 'test'
+  ...
+# Subtest: long unspaced Chinese and emoji text round-trips across chunks
+ok 28 - long unspaced Chinese and emoji text round-trips across chunks
+  ---
+  duration_ms: 7.041465
+  type: 'test'
+  ...
+# Subtest: sharing contains neither private notes nor progress
+ok 29 - sharing contains neither private notes nor progress
+  ---
+  duration_ms: 0.909275
+  type: 'test'
+  ...
+# Subtest: Unicode word links round-trip safely
+ok 30 - Unicode word links round-trip safely
+  ---
+  duration_ms: 0.961143
+  type: 'test'
+  ...
+# Subtest: tampered and oversized links are rejected
+ok 31 - tampered and oversized links are rejected
+  ---
+  duration_ms: 1.018309
+  type: 'test'
+  ...
+# Subtest: prototype-like payload properties cannot inject new fields
+ok 32 - prototype-like payload properties cannot inject new fields
+  ---
+  duration_ms: 0.321826
+  type: 'test'
+  ...
+# Subtest: HTML is escaped, not interpreted
+ok 33 - HTML is escaped, not interpreted
+  ---
+  duration_ms: 0.22533
+  type: 'test'
+  ...
+# Subtest: CSV parser understands quoted commas and newlines
+ok 34 - CSV parser understands quoted commas and newlines
+  ---
+  duration_ms: 1.092011
+  type: 'test'
+  ...
+# Subtest: CSV parser does not erase hashtag lines inside quoted context
+ok 35 - CSV parser does not erase hashtag lines inside quoted context
+  ---
+  duration_ms: 0.347875
+  type: 'test'
+  ...
+# Subtest: unclosed quoted imports fail instead of silently corrupting data
+ok 36 - unclosed quoted imports fail instead of silently corrupting data
+  ---
+  duration_ms: 0.11271
+  type: 'test'
+  ...
+# Subtest: Anki TSV export can be imported with supplied language defaults
+ok 37 - Anki TSV export can be imported with supplied language defaults
+  ---
+  duration_ms: 0.559586
+  type: 'test'
+  ...
+# Subtest: import rejects a bad row before returning any cards
+ok 38 - import rejects a bad row before returning any cards
+  ---
+  duration_ms: 0.202326
+  type: 'test'
+  ...
+# Subtest: JSON backups restore schedules and full review history
+ok 39 - JSON backups restore schedules and full review history
+  ---
+  duration_ms: 1.681762
+  type: 'test'
+  ...
+# Subtest: backup cannot restore secrets or arbitrary provider URLs
+ok 40 - backup cannot restore secrets or arbitrary provider URLs
+  ---
+  duration_ms: 0.468038
+  type: 'test'
+  ...
+# Subtest: malformed scheduler state, counters, and algorithm are rejected
+ok 41 - malformed scheduler state, counters, and algorithm are rejected
+  ---
+  duration_ms: 0.491964
+  type: 'test'
+  ...
+# Subtest: unsupported backup versions are not silently imported
+ok 42 - unsupported backup versions are not silently imported
+  ---
+  duration_ms: 0.147393
+  type: 'test'
+  ...
+# Subtest: all provided starter examples are valid cards
+ok 43 - all provided starter examples are valid cards
+  ---
+  duration_ms: 0.130327
+  type: 'test'
+  ...
+# Subtest: TSV quotation marks survive an export/import round trip
+ok 44 - TSV quotation marks survive an export/import round trip
+  ---
+  duration_ms: 0.146482
+  type: 'test'
+  ...
+# Subtest: quoted tab inside a CSV field is not mistaken for its delimiter
+ok 45 - quoted tab inside a CSV field is not mistaken for its delimiter
+  ---
+  duration_ms: 0.085169
+  type: 'test'
+  ...
+# Subtest: Anki tags with whitespace are converted into portable underscore tags
+ok 46 - Anki tags with whitespace are converted into portable underscore tags
+  ---
+  duration_ms: 0.136636
+  type: 'test'
+  ...
+1..46
+# tests 46
+# suites 0
+# pass 46
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 227.301692

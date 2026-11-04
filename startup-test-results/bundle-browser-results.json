@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "Real denied storage produces an actionable error, not an endless loader",
+    "Repair control exists on storage failure",
+    "Actual standalone scripts execute under the exact CSP hashes",
+    "No uncaught parse or top-level error in the standalone bundle",
+    "Standalone HTML boots with no external JS or CSS dependencies",
+    "Independent guard records readiness",
+    "Startup helper disappears after successful render",
+    "No remote script elements",
+    "Mobile layout has no horizontal overflow",
+    "Existing stored card is retained and counted for review",
+    "Blocked BroadcastChannel does not prevent startup",
+    "Nonresponding database becomes a clear error within the open timeout",
+    "Guard reports a top-level application syntax failure",
+    "Guard handles an absent or blocked application bundle"
+  ],
+  "count": 14,
+  "scope": "Real exact HTML/CSP rendering; in-memory IndexedDB request fixture for healthy startup; real denied storage on about:blank. No hosted-navigation or persistence claim."
+}

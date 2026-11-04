@@ -1,0 +1,120 @@
+TAP version 13
+# Subtest: shipping index has no external JS/CSS startup dependencies
+ok 1 - shipping index has no external JS/CSS startup dependencies
+  ---
+  duration_ms: 11.105188
+  type: 'test'
+  ...
+# Subtest: index and repair exact scripts/styles are authorized by SHA-256 CSP
+ok 2 - index and repair exact scripts/styles are authorized by SHA-256 CSP
+  ---
+  duration_ms: 2.528032
+  type: 'test'
+  ...
+# Subtest: application and independent startup guard parse as classic scripts
+ok 3 - application and independent startup guard parse as classic scripts
+  ---
+  duration_ms: 3.546671
+  type: 'test'
+  ...
+# Subtest: openStore preserves the original database name and version
+ok 4 - openStore preserves the original database name and version
+  ---
+  duration_ms: 7.963727
+  type: 'test'
+  ...
+# Subtest: simultaneous open calls share one pending request
+ok 5 - simultaneous open calls share one pending request
+  ---
+  duration_ms: 3.700363
+  type: 'test'
+  ...
+# Subtest: unavailable IndexedDB is a recoverable, explicit error
+ok 6 - unavailable IndexedDB is a recoverable, explicit error
+  ---
+  duration_ms: 2.983019
+  type: 'test'
+  ...
+# (node:1669) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: blocked upgrades reject and close a later successful connection
+ok 7 - blocked upgrades reject and close a later successful connection
+  ---
+  duration_ms: 3.217839
+  type: 'test'
+  ...
+# Subtest: open timeout rejects without deleting or resetting any database
+ok 8 - open timeout rejects without deleting or resetting any database
+  ---
+  duration_ms: 5.518096
+  type: 'test'
+  ...
+# Subtest: failed open can retry successfully without fallback storage
+ok 9 - failed open can retry successfully without fallback storage
+  ---
+  duration_ms: 2.901106
+  type: 'test'
+  ...
+# Subtest: versionchange closes connection and next open gets a new connection
+ok 10 - versionchange closes connection and next open gets a new connection
+  ---
+  duration_ms: 2.530415
+  type: 'test'
+  ...
+# Subtest: worker install only accepts the matching self-contained release
+ok 11 - worker install only accepts the matching self-contained release
+  ---
+  duration_ms: 42.159199
+  type: 'test'
+  ...
+# Subtest: worker navigation checks the network instead of pinning a stale shell
+ok 12 - worker navigation checks the network instead of pinning a stale shell
+  ---
+  duration_ms: 8.462302
+  type: 'test'
+  ...
+# Subtest: worker retains an offline fallback for the self-contained app
+ok 13 - worker retains an offline fallback for the self-contained app
+  ---
+  duration_ms: 6.577722
+  type: 'test'
+  ...
+# Subtest: worker does not intercept repair, API, other paths, or translations
+ok 14 - worker does not intercept repair, API, other paths, or translations
+  ---
+  duration_ms: 5.942854
+  type: 'test'
+  ...
+# Subtest: worker activation prunes only its own shell paths
+ok 15 - worker activation prunes only its own shell paths
+  ---
+  duration_ms: 2.583189
+  type: 'test'
+  ...
+# Subtest: repair unregisters only this Nabu path, never the origin root or other apps
+ok 16 - repair unregisters only this Nabu path, never the origin root or other apps
+  ---
+  duration_ms: 11.812196
+  type: 'test'
+  ...
+# Subtest: repair removes only Nabu shell requests and then navigates home
+ok 17 - repair removes only Nabu shell requests and then navigates home
+  ---
+  duration_ms: 11.201617
+  type: 'test'
+  ...
+# Subtest: repair and worker do not call database deletion or browser-data reset APIs
+ok 18 - repair and worker do not call database deletion or browser-data reset APIs
+  ---
+  duration_ms: 1.275478
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.026649
