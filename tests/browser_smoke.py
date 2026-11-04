@@ -1,0 +1,256 @@
+"""End-to-end browser checks against static /public/ and an optional running backend.
+Start: python -m http.server 8766 --directory .
+       NABU_ORIGIN=http://127.0.0.1:8765 PORT=8765 NABU_DB=/tmp/nabu-test.sqlite3 python server.py
+Run: python tests/browser_smoke.py --chromium /usr/bin/chromium
+Live translation provider responses are mocked; the inbox backend is REAL local SQLite.
+"""
+from __future__ import annotations
+import argparse,json,time,uuid
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
+
+parser=argparse.ArgumentParser()
+parser.add_argument('--chromium',default='/usr/bin/chromium')
+parser.add_argument('--static',default='http://127.0.0.1:8766/public/')
+parser.add_argument('--server',default='http://127.0.0.1:8765/')
+parser.add_argument('--output',default='test-results')
+args=parser.parse_args()
+OUT=Path(args.output).resolve();OUT.mkdir(parents=True,exist_ok=True)
+results=[];errors=[]
+
+def check(name,condition=True):
+    assert condition,name
+    results.append(name)
+    print('PASS:',name,flush=True)
+
+def ready(page,url):
+    page.goto(url)
+    expect(page.locator('#translation-input')).to_be_visible()
+
+def nav(page,view):
+    page.locator(f'#navigation [data-view="{view}"]').click()
+
+def manual(page,front='bonjour',back='hello',source='fr',note='',reverse=False):
+    nav(page,'library')
+    page.locator('.page-heading [data-action="add-manual"]').click()
+    page.locator('#card-source').select_option(source)
+    page.locator('#card-target').select_option('en')
+    page.locator('#card-front').fill(front)
+    page.locator('#card-back').fill(back)
+    page.locator('#card-note').fill(note)
+    if reverse: page.locator('[name="reverse"]').check()
+    page.locator('#card-submit').click()
+    expect(page.locator('#modal')).not_to_be_visible()
+
+def cards(page):
+    return page.evaluate("async()=>{const d=await import('./nabu-store.js');return (await d.snapshot()).cards}")
+
+def auth(page,handle):
+    nav(page,'exchange')
+    expect(page.locator('[data-mode="register"]')).to_be_visible()
+    page.locator('[data-mode="register"]').click()
+    page.locator('#auth-handle').fill(handle)
+    page.locator('#auth-password').fill('A long test password 427!')
+    page.locator('#auth-form [type="submit"]').click()
+    expect(page.locator('#modal')).not_to_be_visible()
+    expect(page.get_by_text(f'Signed in as @{handle}',exact=False)).to_be_visible()
+
+with sync_playwright() as p:
+    browser=p.chromium.launch(executable_path=args.chromium,headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
+    context=browser.new_context(viewport={'width':1440,'height':1050},accept_downloads=True)
+    page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
+    requests=[]
+    page.on('request',lambda r:requests.append(r.url))
+    ready(page,args.static)
+    check('Static deployment opens in a nested path without a build')
+    check('Fresh library has no fabricated words or statistics',len(cards(page))==0)
+    check('Typing and opening app does not send text to translation service',not any('mymemory' in u for u in requests))
+    page.screenshot(path=str(OUT/'01-translate-desktop.png'),full_page=True)
+    page.locator('[data-action="sample"][data-index="0"]').click()
+    expect(page.locator('#translation-output')).to_contain_text('conversation at the table')
+    expect(page.locator('#provider-note')).to_contain_text('not a live translation')
+    page.locator('[data-action="save-translation"]').click()
+    expect(page.locator('[data-action="save-translation"]')).to_be_disabled()
+    check('Built-in examples are explicitly labeled and save in one click',len(cards(page))==1)
+    page.reload();expect(page.locator('#translation-input')).to_be_visible()
+    check('Cards survive a full page reload',len(cards(page))==1)
+    nav(page,'review')
+    expect(page.locator('.review-word')).to_contain_text('sobremesa')
+    page.locator('#review-typed').fill('conversation after a meal')
+    page.locator('[data-action="reveal"]').click()
+    expect(page.locator('.typed-comparison')).to_contain_text('conversation after a meal')
+    page.screenshot(path=str(OUT/'02-review-desktop.png'),full_page=True)
+    page.locator('[data-action="grade"][data-rating="3"]').click()
+    expect(page.locator('.empty-state')).to_be_visible()
+    record=cards(page)[0]
+    check('Review persists a ten-minute learning interval and one review log',record['schedule']['state']=='learning' and record['schedule']['reps']==1)
+    page.locator('[data-action="undo-review"]').click()
+    expect(page.locator('.review-word')).to_be_visible()
+    check('Undo restores the previous schedule without losing the card',cards(page)[0]['schedule']['state']=='new')
+    page.keyboard.press('Space')
+    page.keyboard.press('4')
+    expect(page.locator('.empty-state')).to_be_visible()
+    check('Keyboard reveal and rating update the scheduler',cards(page)[0]['schedule']['interval']==4)
+    manual(page,front='prendre son temps',back="to take one's time",note='PRIVATE_NOTE_NOT_FOR_SHARING',reverse=True)
+    check('Reverse cards have separate identities and schedules',len(cards(page))==3)
+    original=next(c for c in cards(page) if c['front']=='prendre son temps')
+    page.locator(f'[data-action="share-card"][data-id="{original["id"]}"]').click()
+    link=page.locator('#share-url').input_value()
+    check('Share link carries content in a fragment, not a server query','#share=' in link and '?' not in link)
+    recipient_context=browser.new_context(viewport={'width':1000,'height':900})
+    recipient=recipient_context.new_page();recipient.on('pageerror',lambda e:errors.append(str(e)))
+    ready(recipient,link)
+    expect(recipient.locator('#modal')).to_be_visible()
+    check('Received card requires preview and explicit acceptance',len(cards(recipient))==0)
+    check('Sharing does not expose private notes',recipient.locator('#card-note').input_value()=='')
+    recipient.locator('#card-submit').click()
+    expect(recipient.locator('#modal')).not_to_be_visible()
+    r=cards(recipient)[0]
+    check('Received word starts its own new-card schedule',r['schedule']['state']=='new' and r['schedule']['reps']==0 and r['deck']=='From friends')
+    ready(recipient,link)
+    recipient.locator('#card-submit').click()
+    expect(recipient.locator('#modal')).not_to_be_visible()
+    check('Accepting a shared link twice does not duplicate the word',len(cards(recipient))==1)
+    page.locator('[data-action="close-modal"]').click()
+    manual(page,front='<img src=x onerror="window.PWNED=1">',back='literal markup')
+    check('Untrusted card text is escaped instead of executed',page.evaluate('window.PWNED') is None and page.locator('.word-card img').count()==0)
+    markup=next(c for c in cards(page) if c['front'].startswith('<img'))
+    page.locator(f'[data-action="archive-card"][data-id="{markup["id"]}"]').click()
+    expect(page.locator('#toast')).to_contain_text('archive')
+    check('Archive keeps recoverable card data',next(c for c in cards(page) if c['id']==markup['id'])['archived'])
+    page.locator('#toast [data-action="toast-action"]').click()
+    check('Archive undo restores visibility',not next(c for c in cards(page) if c['id']==markup['id'])['archived'])
+    page.locator(f'[data-action="archive-card"][data-id="{markup["id"]}"]').click()
+    page.locator('#library-search').fill('temps')
+    expect(page.locator('.word-card')).to_have_count(2)
+    check('Library search finds words and meanings')
+    page.locator('#library-search').fill('')
+    page.screenshot(path=str(OUT/'03-library-desktop.png'),full_page=True)
+    page.locator('#avatar').click()
+    with page.expect_download() as dl:
+        page.locator('[data-action="export-backup"]').click()
+    backup=OUT/'browser-backup.json';dl.value.save_as(backup)
+    data=json.loads(backup.read_text())
+    check('Full backup includes real cards and review history',len(data['cards'])==4 and len(data['logs'])==1)
+    with page.expect_download() as dl:
+        page.locator('[data-action="export-tsv"]').click()
+    export=OUT/'browser-anki.tsv';dl.value.save_as(export)
+    check('Anki export is a portable UTF-8 TSV',export.read_text().startswith('#separator:Tab'))
+    fresh_context=browser.new_context(viewport={'width':1000,'height':900})
+    fresh=fresh_context.new_page();ready(fresh,args.static);nav(fresh,'library')
+    fresh.locator('.page-heading [data-action="import"]').click()
+    fresh.locator('#import-file').set_input_files(backup)
+    expect(fresh.locator('#import-preview')).to_contain_text('4')
+    fresh.locator('[data-action="confirm-import"]').click()
+    expect(fresh.locator('#modal')).not_to_be_visible()
+    check('Full JSON backup restores all cards, including archived ones',len(cards(fresh))==4)
+    check('Backup restore preserves reviewed schedule',next(c for c in cards(fresh) if c['front']=='sobremesa')['schedule']['interval']==4)
+    fresh.locator('.page-heading [data-action="import"]').click()
+    fresh.locator('#import-file').set_input_files(backup)
+    fresh.locator('[data-action="confirm-import"]').click()
+    expect(fresh.locator('#modal')).not_to_be_visible()
+    check('Repeated backup import is idempotent',len(cards(fresh))==4)
+    fresh.keyboard.press('Control+k')
+    expect(fresh.locator('#library-search')).to_be_focused()
+    check('Keyboard search shortcut focuses the collection search')
+    # Test a real browser IndexedDB transaction rollback and revision conflict.
+    browser_checks=fresh.evaluate("""async()=>{
+      const DB=await import('./nabu-store.js');const C=await import('./nabu-core.js');
+      const initial=(await DB.snapshot()).cards.length;
+      try{await DB.addCards([{front:'unique_atomic',back:'test',sourceLang:'fr',targetLang:'en'},{front:'',back:'bad',sourceLang:'fr',targetLang:'en'}]);}catch{}
+      const atomic=(await DB.snapshot()).cards.length===initial;
+      const c=(await DB.addCards([{front:'concurrent',back:'simultaneous',sourceLang:'fr',targetLang:'en'}])).cards[0];
+      const results=await Promise.allSettled([DB.gradeCard(c.id,3,c.revision),DB.gradeCard(c.id,4,c.revision)]);
+      const snapshot=await DB.snapshot();
+      return {atomic,success:results.filter(r=>r.status==='fulfilled').length,logs:snapshot.logs.filter(l=>l.cardId===c.id).length};
+    }""")
+    check('Invalid card batch rolls back atomically',browser_checks['atomic'])
+    check('Concurrent reviews accept only one revision and one log',browser_checks['success']==1 and browser_checks['logs']==1)
+    # Translation: deterministic provider integration mock; explicitly not a live-provider test.
+    nav(page,'translate')
+    calls=[]
+    def translate_mock(route):
+        calls.append(route.request.url)
+        route.fulfill(status=200,content_type='application/json',headers={'Access-Control-Allow-Origin':'*'},body=json.dumps({'responseStatus':200,'responseData':{'translatedText':'hello &amp; welcome'}}))
+    context.route('https://api.mymemory.translated.net/**',translate_mock)
+    page.locator('#translation-input').fill('bonjour et bienvenue')
+    page.locator('#source-language').select_option('fr')
+    page.locator('#translation-consent').check()
+    page.locator('[data-action="translate"]').click()
+    expect(page.locator('.translation-result')).to_contain_text('hello & welcome')
+    check('Translation adapter handles provider payloads and HTML entities',len(calls)==1)
+    page.locator('[data-action="translate"]').click()
+    expect(page.locator('#provider-note')).to_contain_text('Saved translation')
+    check('Repeated translations are served from the local cache',len(calls)==1)
+    context.unroute('https://api.mymemory.translated.net/**',translate_mock)
+    def quota_mock(route):
+        route.fulfill(status=200,content_type='application/json',headers={'Access-Control-Allow-Origin':'*'},body=json.dumps({'responseStatus':403,'quotaFinished':True,'responseDetails':'Quota exhausted'}))
+    context.route('https://api.mymemory.translated.net/**',quota_mock)
+    page.locator('#translation-input').fill('different phrase to fail')
+    page.locator('[data-action="translate"]').click()
+    expect(page.locator('.translation-error')).to_contain_text('quota')
+    check('Provider errors cannot be accidentally saved as translations',page.locator('[data-action="save-translation"]').count()==0)
+    context.unroute('https://api.mymemory.translated.net/**',quota_mock)
+    # Offline shell and review: requires an actual registered service worker.
+    page.evaluate('async()=>{await navigator.serviceWorker.ready}')
+    page.reload();expect(page.locator('#translation-input')).to_be_visible()
+    context.set_offline(True)
+    page.reload();expect(page.locator('#translation-input')).to_be_visible()
+    nav(page,'review');expect(page.locator('.review-word')).to_be_visible()
+    page.locator('[data-action="reveal"]').click()
+    page.locator('[data-action="grade"][data-rating="4"]').click()
+    check('The cached app opens offline and saves real review progress')
+    context.set_offline(False)
+    # Mobile layout, including RTL and modal overflow.
+    mobile_context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,device_scale_factor=1)
+    mobile=mobile_context.new_page();mobile.on('pageerror',lambda e:errors.append(str(e)))
+    ready(mobile,args.static)
+    mobile.locator('[data-action="sample"][data-index="2"]').click()
+    check('Arabic sample is shown with automatic text direction',mobile.locator('#translation-input').get_attribute('dir')=='auto')
+    check('Mobile translator has no horizontal overflow',mobile.evaluate('document.documentElement.scrollWidth<=window.innerWidth+1'))
+    mobile.screenshot(path=str(OUT/'04-translate-mobile.png'),full_page=True)
+    mobile.locator('[data-action="save-translation"]').click()
+    nav(mobile,'library')
+    mobile.locator('[data-action="edit-card"]').click()
+    check('Mobile editor fits inside the viewport',mobile.evaluate('document.querySelector("dialog").getBoundingClientRect().right<=window.innerWidth'))
+    mobile.screenshot(path=str(OUT/'05-editor-mobile.png'),full_page=True)
+    # Real local backend, two separate authenticated browser profiles.
+    alice_context=browser.new_context(viewport={'width':1280,'height':960})
+    bob_context=browser.new_context(viewport={'width':1200,'height':900})
+    alice=alice_context.new_page();bob=bob_context.new_page()
+    alice.on('pageerror',lambda e:errors.append(str(e)));bob.on('pageerror',lambda e:errors.append(str(e)))
+    ready(alice,args.server);ready(bob,args.server)
+    suffix=uuid.uuid4().hex[:6];alice_name='alice_'+suffix;bob_name='bob_'+suffix
+    auth(alice,alice_name);auth(bob,bob_name)
+    check('Two independent users can register and establish real sessions')
+    manual(alice,front='caminito',back='little path',source='es',note='private sender note')
+    alice.locator('[data-action="share-card"]').click()
+    alice.locator('#send-handle').fill(bob_name)
+    alice.locator('#send-message').fill('A little word for your next trip.')
+    alice.locator('#send-form [type="submit"]').click()
+    expect(alice.locator('#modal')).not_to_be_visible()
+    bob.locator('.exchange-panel [data-action="refresh-inbox"]').click()
+    expect(bob.locator('.inbox-item')).to_have_count(1)
+    expect(bob.locator('.inbox-word')).to_contain_text('caminito')
+    check('Direct word exchange reaches only the real recipient inbox')
+    bob.screenshot(path=str(OUT/'06-exchange-inbox.png'),full_page=True)
+    bob.locator('[data-action="accept-exchange"]').click()
+    expect(bob.locator('#card-note')).to_have_value('')
+    bob.locator('#card-submit').click()
+    expect(bob.locator('#modal')).not_to_be_visible()
+    expect(bob.locator('.inbox-meta')).to_contain_text('accepted')
+    check('Accepting a direct exchange saves a fresh private card and updates its server status',len(cards(bob))==1 and cards(bob)[0]['schedule']['reps']==0)
+    bob.locator('[data-action="block-user"]').click()
+    expect(bob.locator('.inbox-item')).to_have_count(0)
+    alice.locator('[data-action="share-card"]').click()
+    alice.locator('#send-handle').fill(bob_name)
+    alice.locator('#send-form [type="submit"]').click()
+    expect(alice.locator('#modal-error')).to_contain_text('unavailable')
+    check('Blocking prevents subsequent delivery through the real backend')
+    bob.locator('[data-action="logout"]').click()
+    expect(bob.locator('[data-mode="login"]')).to_be_visible()
+    check('Logging out does not remove the local library',len(cards(bob))==1)
+    check('No unhandled JavaScript exceptions during complete journeys',errors==[])
+    (OUT/'browser-results.json').write_text(json.dumps({'passed':len(results),'checks':results,'javascript_errors':errors,'translation':'mocked provider; real local inbox'},indent=2))
+    browser.close()
+print(f'\n{len(results)} browser checks passed. Screenshots: {OUT}')
