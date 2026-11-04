@@ -1,5 +1,5 @@
 /* Self-contained HTML release. Never cache API responses or personal library data. */
-const BUILD = 'nabu-startup-20261104-r2';
+const BUILD = 'nabu-wordgraph-20261104-r1';
 const BASE = new URL('./', self.location.href);
 const INDEX = new URL('./index.html', BASE).href;
 const CACHE = 'nabu-translate-shell-' + encodeURIComponent(BASE.pathname) + '-' + BUILD;
