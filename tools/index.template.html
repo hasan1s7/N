@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#24624f">
+  <meta name="description" content="Translate a thought. Keep a word. Nabu brings translation, spaced repetition, and word exchange together.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.mymemory.translated.net; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; worker-src 'self'; manifest-src 'self'">
+  <title>Nabu - Translate. Remember. Exchange.</title>
+  <link rel="icon" href="./nabu-icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./nabu.webmanifest">
+  <link rel="stylesheet" href="./nabu.css">
+  <script type="module" src="./nabu-app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="./" aria-label="Nabu home"><span class="brand-mark" aria-hidden="true">n<span></span></span><span>nabu<span class="brand-period">.</span></span></a>
+    <div class="workspace-label">YOUR EVERYDAY LANGUAGE SPACE</div>
+    <nav id="navigation"></nav>
+    <div class="sidebar-bottom"><div class="local-status"><span class="status-dot"></span><span id="storage-label">Saved on this device</span></div><button class="nav-item" data-action="go" data-view="settings" id="settings-nav"></button></div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar"><span class="breadcrumb">YOUR WORDS, CONNECTED</span><div class="topbar-right"><span id="connection" class="connection">Local-first</span><button class="avatar" data-action="go" data-view="settings" aria-label="Open settings" id="avatar">N</button></div></header>
+    <main id="main" tabindex="-1"><div class="loading-screen"><span class="brand-mark" aria-hidden="true">n<span></span></span><h1>Making room for your words.</h1><p>Opening your private library...</p></div></main>
+    <footer class="app-footer"><span>Translate once. Remember for longer.</span><span>Nabu <span aria-hidden="true">/</span> Made for the words you actually use.</span></footer>
+  </div>
+  <dialog id="modal" aria-labelledby="modal-title"><div class="modal-header"><h2 id="modal-title"></h2><button class="icon-button" data-action="close-modal" aria-label="Close dialog">&#215;</button></div><div id="modal-body"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript><div class="fatal">Nabu needs JavaScript to translate and store your cards. Enable JavaScript, then reload this page.</div></noscript>
+</body>
+</html>
