@@ -1,1 +1,53 @@
-{"name":"Nabu - Translate & Remember","short_name":"Nabu","description":"Your translator, personal word library, and daily review space.","start_url":"./","scope":"./","display":"standalone","background_color":"#f7f8f5","theme_color":"#24624f","icons":[{"src":"./nabu-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
+{
+  "name": "Nabu \u2014 Translate, Remember, Share",
+  "short_name": "Nabu",
+  "description": "Your translator, personal word library, and daily review space.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f8f5",
+  "theme_color": "#103a35",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "./",
+  "orientation": "any",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "Translate",
+      "short_name": "Translate",
+      "url": "./#"
+    },
+    {
+      "name": "Review",
+      "short_name": "Review",
+      "url": "./#review"
+    },
+    {
+      "name": "Friends",
+      "short_name": "Friends",
+      "url": "./#friends"
+    }
+  ]
+}

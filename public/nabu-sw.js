@@ -1,9 +1,10 @@
 /* Self-contained HTML release. Never cache API responses or personal library data. */
-const BUILD = 'nabu-wordgraph-20261104-r1';
+const BUILD = 'nabu-graph-pages-20261105-r2';
 const BASE = new URL('./', self.location.href);
 const INDEX = new URL('./index.html', BASE).href;
 const CACHE = 'nabu-translate-shell-' + encodeURIComponent(BASE.pathname) + '-' + BUILD;
-const DOCUMENTS = new Set([BASE.pathname, new URL(INDEX).pathname]);
+const DOCUMENTS = new Set(['','index.html','translate','read','words','library','review','friends','settings'].map(p=>BASE.pathname+p));
+function appDocument(pathname){return DOCUMENTS.has(pathname)||pathname.startsWith(BASE.pathname+'w/')&&/^w\/[a-z0-9][a-z0-9-]{0,63}-[A-Za-z0-9_-]{16}$/.test(pathname.slice(BASE.pathname.length));}
 async function validShell(response) {
   return response.ok && (response.headers.get('content-type') || '').includes('text/html') &&
     (await response.clone().text()).includes('data-nabu-build="' + BUILD + '"');
@@ -30,7 +31,7 @@ self.addEventListener('activate', event => event.waitUntil((async () => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET' || url.origin !== BASE.origin ||
-      event.request.mode !== 'navigate' || !DOCUMENTS.has(url.pathname)) return;
+      event.request.mode !== 'navigate' || !appDocument(url.pathname)) return;
   // In particular, nabu-repair.html must always bypass the offline shell.
   event.respondWith((async () => {
     const controller = new AbortController();
